@@ -1,5 +1,13 @@
 # BazCore Changelog
 
+## 101 - Secure Action Popup primitive + CPU Mini Monitor
+- New `SecureActionPopup.lua` — generic factory `BazCore:CreateSecureActionPopup(opts)` for popup grids of secure action buttons. Backdrop chrome, 9-slice layout, direction-aware anchoring (UP/DOWN/LEFT/RIGHT), per-popup hidden `SecureHandlerClickTemplate` proxy that toggles via SAB's `type="click"` so right-click on the trigger opens the popup without conflicting with its existing OnClick dispatcher. Combat-safe. Sticky mode (`popup:SetSticky(true)`) suppresses click-outside dismissal so the popup can act as a live preview while another dialog is open. Click-outside dismissal uses `GLOBAL_MOUSE_UP` (not _DOWN) so drag pickups from spellbook / mount journal don't trip it. Used by BazBars flyouts; reusable for any future Baz addon that needs a popup of secure cells.
+- New `CPUMiniMonitor.lua` — small floating top-N CPU window for diagnosing in-game spikes without taking over the screen. Subscribes to the same shared sampler the full CPU page uses (no extra ticker overhead). Draggable, position + visibility persisted via `BazCoreDB.cpuMini`. "Baz / All" mode toggle: Baz scope tracks just the suite, All scope iterates every loaded addon (own delta sampler) so third-party hitches show up too. Color-coded share (orange ≥40%, gold ≥20%). Registered with LibBazWidget so widget hosts (BazWidgetDrawers) can dock it.
+- `CPUPage.lua` exposes `BazCore:SubscribeCPU`, `GetCPUStateRef`, `CPUGetTrackedAddons`, `CPUFormatRate`, `CPUGetAddonDisplayName` so sibling modules can ride the existing sampler. New `cpuMiniToggle` page block sits below the summary with a Show/Hide button.
+- `CPULog.lua` adds `/bazcpu mini` to toggle the floating monitor; help line updated.
+- `Popup.lua` `MakeFieldOpt` now forwards `field.live` to range widgets, supporting live-preview consumers.
+- `Options/WidgetFactories.lua` range slider's `OnValueChanged` fires `opt.set` mid-drag when `opt.live` is true (default behavior unchanged for callers that don't opt in).
+
 ## 026 - DockableWidget API, Modules Page, Minimap Icon Mask
 - New `DockableWidget.lua` module exposing the cross-addon dockable widget registry used by BazWidgetDrawers
   - `BazCore:RegisterDockableWidget(widget)` — registers a widget to appear in BazWidgetDrawers's slot stack

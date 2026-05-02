@@ -101,6 +101,7 @@ local function MakeFieldOpt(field, state)
         opt.step = field.step
         opt.format = field.format
         opt.isPercent = field.isPercent
+        opt.live = field.live  -- fire setter on every drag tick when true
     end
     return opt
 end

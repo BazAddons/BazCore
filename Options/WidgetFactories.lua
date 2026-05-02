@@ -206,11 +206,17 @@ local function CreateRangeWidget(parent, opt, contentWidth)
     -- on release. Stepper buttons and the editbox commit via direct
     -- SetValue calls outside any drag, so this branch fires opt.set
     -- for them as before.
+    --
+    -- opt.live = true overrides the suppression: the setter fires on
+    -- every drag tick, for callers (e.g. the BazBars flyout config
+    -- form) that drive a live preview off the slider value.
     slider.Slider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value / step + 0.5) * step
         label:SetText((opt.name or "") .. ": " .. FormatValue(value))
         valueBox:SetText(FormatValue(value))
-        if not dragging and opt.set then opt.set(nil, value) end
+        if (not dragging or opt.live) and opt.set then
+            opt.set(nil, value)
+        end
     end)
 
     -- EditBox commit on Enter: parse, clamp, snap to step, write

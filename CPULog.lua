@@ -619,6 +619,14 @@ SlashCmdList.BAZCPU = function(msg)
         print(string.format("|cffffd700BazCore:|r marked '%s'", label))
         return
     end
+    if lcmd == "mini" then
+        if BazCore.ToggleCPUMiniMonitor then
+            BazCore:ToggleCPUMiniMonitor()
+            print(string.format("|cffffd700BazCore:|r mini monitor %s",
+                BazCore:IsCPUMiniMonitorShown() and "shown" or "hidden"))
+        end
+        return
+    end
     if lcmd == "top" then
         local target = rest:match("^(%S+)") or "BazCore"
         local n      = tonumber(rest:match("(%d+)%s*$")) or 20
@@ -643,5 +651,5 @@ SlashCmdList.BAZCPU = function(msg)
         print(string.format("  %-22s  %.0f ms total  (%.0f ms/h)",
             g.name, g.totalMs, g.ratePerHour))
     end
-    print("|cffffd700Commands:|r /bazcpu top <addon> | enable | disable | mark | export | dump | reset")
+    print("|cffffd700Commands:|r /bazcpu top <addon> | enable | disable | mark | mini | export | dump | reset")
 end

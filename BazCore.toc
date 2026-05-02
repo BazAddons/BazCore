@@ -2,7 +2,7 @@
 ## Title: BazCore
 ## Notes: Shared framework for Baz addons
 ## Author: Baz4k
-## Version: 100
+## Version: 101
 ## X-License: GPL v2
 ## Category: Baz Suite
 ## X-Curse-Project-ID: 1503896
@@ -44,10 +44,12 @@ Options\UserGuide.lua
 OptionsPanel.lua
 CopyDialog.lua
 Popup.lua
+SecureActionPopup.lua
 MemoryLog.lua
 MemoryPage.lua
 CPULog.lua
 CPUPage.lua
+CPUMiniMonitor.lua
 AddonListButton.lua
 IconPicker.lua
 DockableWidget.lua

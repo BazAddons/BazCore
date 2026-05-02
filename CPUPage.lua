@@ -201,6 +201,31 @@ local function ResetPeaks()
 end
 
 ---------------------------------------------------------------------------
+-- Public access for sibling modules (e.g. CPUMiniMonitor) that want to
+-- ride the same sampler so the ticker stays cheap and cohesive.
+---------------------------------------------------------------------------
+
+function BazCore:SubscribeCPU(frame, refresh)
+    Subscribe(frame, refresh)
+end
+
+function BazCore:GetCPUStateRef()
+    return state
+end
+
+function BazCore:CPUGetTrackedAddons()
+    return GetTrackedAddons()
+end
+
+function BazCore:CPUFormatRate(ms)
+    return FormatRate(ms)
+end
+
+function BazCore:CPUGetAddonDisplayName(name)
+    return GetAddonDisplayName(name)
+end
+
+---------------------------------------------------------------------------
 -- Singleton widget cache - so navigating away and back re-uses frames
 -- instead of leaking new ones every visit.
 ---------------------------------------------------------------------------
@@ -811,6 +836,55 @@ end
 -- Register block factories with the layout engine.
 ---------------------------------------------------------------------------
 
+---------------------------------------------------------------------------
+-- Block: cpuMiniToggle - Show/Hide the floating mini monitor.
+---------------------------------------------------------------------------
+
+local MINI_TOGGLE_HEIGHT = 50
+
+local function BuildCPUMiniToggle(parent, contentWidth)
+    local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    frame:SetSize(contentWidth, MINI_TOGGLE_HEIGHT)
+    frame:SetBackdrop({
+        bgFile   = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile     = true, tileSize = 16, edgeSize = 8,
+        insets   = { left = 4, right = 4, top = 4, bottom = 4 },
+    })
+    frame:SetBackdropColor(0.04, 0.04, 0.06, 0.7)
+    frame:SetBackdropBorderColor(0.4, 0.35, 0.2, 0.85)
+
+    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("LEFT", 16, 4)
+    label:SetText("Floating Mini Monitor")
+
+    local note = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    note:SetPoint("LEFT", 16, -10)
+    note:SetText("Small draggable window with the live top consumers - keep visible while playing to spot in-game spikes.")
+    note:SetTextColor(0.6, 0.6, 0.6)
+    note:SetWidth(contentWidth - 180)
+    note:SetWordWrap(true)
+    note:SetJustifyH("LEFT")
+
+    local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    btn:SetSize(120, 26)
+    btn:SetPoint("RIGHT", -16, 0)
+    local function refreshLabel()
+        btn:SetText(BazCore:IsCPUMiniMonitorShown() and "Hide" or "Show")
+    end
+    btn:SetScript("OnClick", function()
+        BazCore:ToggleCPUMiniMonitor()
+        refreshLabel()
+    end)
+    refreshLabel()
+
+    return frame, MINI_TOGGLE_HEIGHT
+end
+
+O.widgetFactories.cpuMiniToggle = function(parent, opt, contentWidth)
+    return GetOrCreateSingleton("cpuMiniToggle", BuildCPUMiniToggle, parent, contentWidth)
+end
+
 O.widgetFactories.cpuSetup = function(parent, opt, contentWidth)
     return GetOrCreateSingleton("cpuSetup", BuildCPUSetupCard, parent, contentWidth)
 end
@@ -837,6 +911,7 @@ if O.RegisterFullWidthBlockType then
     O.RegisterFullWidthBlockType("cpuGraph")
     O.RegisterFullWidthBlockType("cpuTopList")
     O.RegisterFullWidthBlockType("cpuEventList")
+    O.RegisterFullWidthBlockType("cpuMiniToggle")
 end
 
 ---------------------------------------------------------------------------
@@ -867,6 +942,10 @@ local function GetCPUPage()
         summary = {
             order = 3,
             type  = "cpuSummary",
+        },
+        miniToggle = {
+            order = 4,
+            type  = "cpuMiniToggle",
         },
             perAddonHeader = {
                 order = 10,
