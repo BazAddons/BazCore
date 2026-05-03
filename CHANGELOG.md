@@ -1,5 +1,8 @@
 # BazCore Changelog
 
+## 104 - Welcome message: format as a list
+- v102/103's welcome line crammed every Baz addon into a single comma-separated chat line, which wrapped awkwardly. Now prints a header line ("BazCore vXXX loaded:") followed by one indented line per addon. Easier to scan and lines up with how `/whoami`-style addon listings render.
+
 ## 103 - Welcome message: defer one tick so BazChat sees it
 - v102's welcome `print()` ran inside the BazCoreSelfPages `QueueForLogin` handler, which fires before BazChat's `Replica:Start` handler in the same login queue. At print time `DEFAULT_CHAT_FRAME` was still Blizzard's hidden `ChatFrame1` (BazChat hadn't reassigned it yet), so the message landed on a hidden frame and the user saw nothing.
 - Wrapped the welcome print in `C_Timer.After(0, ...)` so it runs after every other PLAYER_LOGIN-queued handler completes, including BazChat's `DEFAULT_CHAT_FRAME = replicaWindow1`. The print now lands on the visible chat window.

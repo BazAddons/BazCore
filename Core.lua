@@ -310,8 +310,8 @@ BazCore:QueueForLogin(function()
     -- to its own frames which BazChat has hidden.
     if BazCoreDB.welcomeMessage ~= false then
         C_Timer.After(0, function()
-            local entries = { string.format("|cff3399ffBazCore|r v%s",
-                tostring(BazCore.VERSION or "?")) }
+            BazCore:Print(string.format("|cff3399ffBazCore|r v%s loaded:",
+                tostring(BazCore.VERSION or "?")))
             local sorted = {}
             for name, config in pairs(BazCore.addons) do
                 sorted[#sorted + 1] = { name = config.title or name, toc = name }
@@ -320,10 +320,8 @@ BazCore:QueueForLogin(function()
             for _, info in ipairs(sorted) do
                 local ver = (C_AddOns and C_AddOns.GetAddOnMetadata
                     and C_AddOns.GetAddOnMetadata(info.toc, "Version")) or "?"
-                entries[#entries + 1] = string.format("|cffffd700%s|r v%s",
-                    info.name, ver)
+                print(string.format("    |cffffd700%s|r v%s", info.name, ver))
             end
-            BazCore:Print(table.concat(entries, ", "))
         end)
     end
 
