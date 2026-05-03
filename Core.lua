@@ -310,7 +310,12 @@ BazCore:QueueForLogin(function()
     -- to its own frames which BazChat has hidden.
     if BazCoreDB.welcomeMessage ~= false then
         C_Timer.After(0, function()
-            BazCore:Print(string.format("|cff3399ffBazCore|r v%s loaded:",
+            -- Header uses raw print() so the BazCore: brand prefix from
+            -- BazCore:Print doesn't appear before the colored "BazCore"
+            -- in the line itself ("BazCore: BazCore vXXX loaded:" reads
+            -- redundantly). The brand color is baked into the line
+            -- directly instead.
+            print(string.format("|cff3399ffBazCore|r v%s loaded:",
                 tostring(BazCore.VERSION or "?")))
             local sorted = {}
             for name, config in pairs(BazCore.addons) do

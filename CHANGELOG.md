@@ -1,5 +1,8 @@
 # BazCore Changelog
 
+## 105 - Welcome message: drop redundant "BazCore:" brand prefix
+- The header line read "BazCore: BazCore vXXX loaded:" because `BazCore:Print` already prepends the suite-blue "BazCore:" brand prefix and the message itself also led with "BazCore". Switched the header to a raw `print()` so the colored "BazCore" appears once at the start of the line.
+
 ## 104 - Welcome message: format as a list
 - v102/103's welcome line crammed every Baz addon into a single comma-separated chat line, which wrapped awkwardly. Now prints a header line ("BazCore vXXX loaded:") followed by one indented line per addon. Easier to scan and lines up with how `/whoami`-style addon listings render.
 
