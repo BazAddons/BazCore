@@ -296,6 +296,26 @@ BazCore:QueueForLogin(function()
     end)
     BazCore:AddToSettings("BazCore-Settings", "General Settings", "BazCore")
 
+    -- Suite welcome line: prints "BazCore vXXX, BazBars vYYY, ..." for
+    -- every registered Baz addon on login, sorted alphabetically.
+    -- Suppressed when welcomeMessage is toggled off in General Settings.
+    if BazCoreDB.welcomeMessage ~= false then
+        local entries = { string.format("|cff3399ffBazCore|r v%s",
+            tostring(BazCore.VERSION or "?")) }
+        local sorted = {}
+        for name, config in pairs(BazCore.addons) do
+            sorted[#sorted + 1] = { name = config.title or name, toc = name }
+        end
+        table.sort(sorted, function(a, b) return a.name < b.name end)
+        for _, info in ipairs(sorted) do
+            local ver = (C_AddOns and C_AddOns.GetAddOnMetadata
+                and C_AddOns.GetAddOnMetadata(info.toc, "Version")) or "?"
+            entries[#entries + 1] = string.format("|cffffd700%s|r v%s",
+                info.name, ver)
+        end
+        BazCore:Print(table.concat(entries, ", "))
+    end
+
     -- Profiles subcategory (unified for all Baz Suite addons)
     if BazCore.GetProfileOptionsTable then
         BazCore:RegisterOptionsTable("BazCore-Profiles", function()

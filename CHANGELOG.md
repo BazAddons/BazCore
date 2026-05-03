@@ -1,5 +1,9 @@
 # BazCore Changelog
 
+## 102 - Suite-wide welcome message
+- Login now prints a single "BazCore vXXX, BazBars vYYY, BazBags vZZZ, ..." line listing every registered Baz addon and its version, sorted alphabetically. BazCore itself in suite-blue, individual addons in gold.
+- Replaces the per-addon "loaded" prints that some addons (BazChat) were doing on their own. Suppressed when the existing **Show Welcome Messages** toggle (Settings > BazCore > General Settings) is off; that setting now actually does something.
+
 ## 101 - Secure Action Popup primitive + CPU Mini Monitor
 - New `SecureActionPopup.lua` — generic factory `BazCore:CreateSecureActionPopup(opts)` for popup grids of secure action buttons. Backdrop chrome, 9-slice layout, direction-aware anchoring (UP/DOWN/LEFT/RIGHT), per-popup hidden `SecureHandlerClickTemplate` proxy that toggles via SAB's `type="click"` so right-click on the trigger opens the popup without conflicting with its existing OnClick dispatcher. Combat-safe. Sticky mode (`popup:SetSticky(true)`) suppresses click-outside dismissal so the popup can act as a live preview while another dialog is open. Click-outside dismissal uses `GLOBAL_MOUSE_UP` (not _DOWN) so drag pickups from spellbook / mount journal don't trip it. Used by BazBars flyouts; reusable for any future Baz addon that needs a popup of secure cells.
 - New `CPUMiniMonitor.lua` — small floating top-N CPU window for diagnosing in-game spikes without taking over the screen. Subscribes to the same shared sampler the full CPU page uses (no extra ticker overhead). Draggable, position + visibility persisted via `BazCoreDB.cpuMini`. "Baz / All" mode toggle: Baz scope tracks just the suite, All scope iterates every loaded addon (own delta sampler) so third-party hitches show up too. Color-coded share (orange ≥40%, gold ≥20%). Registered with LibBazWidget so widget hosts (BazWidgetDrawers) can dock it.
