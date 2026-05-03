@@ -152,6 +152,7 @@ local function Refresh(frame)
         if frame.modeBtn then
             frame.modeBtn:SetText(CurrentMode() == "all" and "All" or "Baz")
         end
+        if frame._refreshStartStop then frame._refreshStartStop() end
         return
     end
 
@@ -204,6 +205,7 @@ local function Refresh(frame)
     if frame.modeBtn then
         frame.modeBtn:SetText(mode == "all" and "All" or "Baz")
     end
+    if frame._refreshStartStop then frame._refreshStartStop() end
 end
 
 ---------------------------------------------------------------------------
@@ -256,6 +258,37 @@ local function BuildContent(host, opts)
     end)
     mb:SetScript("OnLeave", GameTooltip_Hide)
     host.modeBtn = mb
+
+    -- Start / Stop button: toggles the scriptProfile CVar (the gate
+    -- behind every CPU sample). Both EnableCPUProfiling and
+    -- DisableCPUProfiling /reload after flipping the CVar - the API
+    -- requires it - so the click is destructive (loses any in-flight
+    -- session state). Tooltip warns about the reload.
+    local sb = CreateFrame("Button", nil, titleBar, "UIPanelButtonTemplate")
+    sb:SetSize(46, 18)
+    sb:SetPoint("RIGHT", mb, "LEFT", -4, 0)
+    local function refreshStartStop()
+        local on = GetCVarBool and GetCVarBool("scriptProfile") or false
+        sb:SetText(on and "Stop" or "Start")
+    end
+    refreshStartStop()
+    sb:SetScript("OnClick", function()
+        local on = GetCVarBool and GetCVarBool("scriptProfile") or false
+        if on then
+            BazCore:DisableCPUProfiling(true)
+        else
+            BazCore:EnableCPUProfiling(true)
+        end
+    end)
+    sb:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("CPU Profiling", 1, 0.82, 0)
+        GameTooltip:AddLine("Toggles the scriptProfile CVar. Requires |cffffd700/reload|r - clicking will reload your UI immediately.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    sb:SetScript("OnLeave", GameTooltip_Hide)
+    host.startStopBtn = sb
+    host._refreshStartStop = refreshStartStop
 
     host.rows = {}
     for i = 1, TOP_N do
@@ -388,6 +421,11 @@ local function RegisterWidget()
     BuildWidget()
     LBW:RegisterWidget({
         id           = "bazcore_cpumonitor",
+        -- Explicit source so BazWidgetDrawers' Widgets list groups
+        -- this under BazCore instead of falling through the ID-prefix
+        -- detection ("bazcore_" isn't in BWD's known-prefix list, so
+        -- without this it lands in "Other").
+        source       = "BazCore",
         label        = "CPU Monitor",
         designWidth  = FRAME_W,
         designHeight = ContentHeight(),

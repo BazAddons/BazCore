@@ -1,5 +1,9 @@
 # BazCore Changelog
 
+## 106 - CPU Monitor widget: explicit source + Start/Stop button
+- Widget now declares `source = "BazCore"` so BazWidgetDrawers' Widgets list groups it under BazCore (was falling through to "Other" since the `bazcore_` ID prefix wasn't in BWD's known-prefix list).
+- Added a Start/Stop button to the widget's title bar that toggles the `scriptProfile` CVar via the existing `EnableCPUProfiling` / `DisableCPUProfiling` helpers. Tooltip warns the click triggers `/reload`. The button label switches between "Start" (when profiling is off) and "Stop" (when on) and refreshes on every tick.
+
 ## 105 - Welcome message: drop redundant "BazCore:" brand prefix
 - The header line read "BazCore: BazCore vXXX loaded:" because `BazCore:Print` already prepends the suite-blue "BazCore:" brand prefix and the message itself also led with "BazCore". Switched the header to a raw `print()` so the colored "BazCore" appears once at the start of the line.
 
