@@ -299,21 +299,32 @@ BazCore:QueueForLogin(function()
     -- Suite welcome line: prints "BazCore vXXX, BazBars vYYY, ..." for
     -- every registered Baz addon on login, sorted alphabetically.
     -- Suppressed when welcomeMessage is toggled off in General Settings.
+    --
+    -- Deferred via C_Timer.After(0, ...) so it runs after every other
+    -- login-queued handler in this same tick, in particular BazChat's
+    -- Replica:Start which reassigns DEFAULT_CHAT_FRAME to its own
+    -- replica window. Without the defer our print() landed on
+    -- Blizzard's hidden ChatFrame1 (the original DEFAULT_CHAT_FRAME at
+    -- the moment our QueueForLogin ran), invisible to the user. Same
+    -- reason the Guild MOTD doesn't show: Blizzard prints it directly
+    -- to its own frames which BazChat has hidden.
     if BazCoreDB.welcomeMessage ~= false then
-        local entries = { string.format("|cff3399ffBazCore|r v%s",
-            tostring(BazCore.VERSION or "?")) }
-        local sorted = {}
-        for name, config in pairs(BazCore.addons) do
-            sorted[#sorted + 1] = { name = config.title or name, toc = name }
-        end
-        table.sort(sorted, function(a, b) return a.name < b.name end)
-        for _, info in ipairs(sorted) do
-            local ver = (C_AddOns and C_AddOns.GetAddOnMetadata
-                and C_AddOns.GetAddOnMetadata(info.toc, "Version")) or "?"
-            entries[#entries + 1] = string.format("|cffffd700%s|r v%s",
-                info.name, ver)
-        end
-        BazCore:Print(table.concat(entries, ", "))
+        C_Timer.After(0, function()
+            local entries = { string.format("|cff3399ffBazCore|r v%s",
+                tostring(BazCore.VERSION or "?")) }
+            local sorted = {}
+            for name, config in pairs(BazCore.addons) do
+                sorted[#sorted + 1] = { name = config.title or name, toc = name }
+            end
+            table.sort(sorted, function(a, b) return a.name < b.name end)
+            for _, info in ipairs(sorted) do
+                local ver = (C_AddOns and C_AddOns.GetAddOnMetadata
+                    and C_AddOns.GetAddOnMetadata(info.toc, "Version")) or "?"
+                entries[#entries + 1] = string.format("|cffffd700%s|r v%s",
+                    info.name, ver)
+            end
+            BazCore:Print(table.concat(entries, ", "))
+        end)
     end
 
     -- Profiles subcategory (unified for all Baz Suite addons)

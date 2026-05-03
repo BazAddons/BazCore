@@ -1,5 +1,9 @@
 # BazCore Changelog
 
+## 103 - Welcome message: defer one tick so BazChat sees it
+- v102's welcome `print()` ran inside the BazCoreSelfPages `QueueForLogin` handler, which fires before BazChat's `Replica:Start` handler in the same login queue. At print time `DEFAULT_CHAT_FRAME` was still Blizzard's hidden `ChatFrame1` (BazChat hadn't reassigned it yet), so the message landed on a hidden frame and the user saw nothing.
+- Wrapped the welcome print in `C_Timer.After(0, ...)` so it runs after every other PLAYER_LOGIN-queued handler completes, including BazChat's `DEFAULT_CHAT_FRAME = replicaWindow1`. The print now lands on the visible chat window.
+
 ## 102 - Suite-wide welcome message
 - Login now prints a single "BazCore vXXX, BazBars vYYY, BazBags vZZZ, ..." line listing every registered Baz addon and its version, sorted alphabetically. BazCore itself in suite-blue, individual addons in gold.
 - Replaces the per-addon "loaded" prints that some addons (BazChat) were doing on their own. Suppressed when the existing **Show Welcome Messages** toggle (Settings > BazCore > General Settings) is off; that setting now actually does something.
