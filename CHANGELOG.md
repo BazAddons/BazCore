@@ -1,5 +1,18 @@
 # BazCore Changelog
 
+## 108 — Confirm popups now sit above Edit Mode panels
+
+When the Delete-bar confirm popup (or any other BazCore confirm /
+alert) opened while a BazBars Edit Mode settings panel was already
+showing, the popup's backdrop landed BEHIND the settings panel while
+its buttons and text floated in front — a half-and-half visual that
+looked broken. Both frames lived at the same `DIALOG` strata and
+frame level, so render order between them was undefined.
+
+The popup is now at `FULLSCREEN_DIALOG` strata, which puts it cleanly
+above any DIALOG-level UI. The whole popup — backdrop and content —
+renders together on top, the way a confirm dialog should.
+
 ## 107 — New BazCore:SafeBool helper for Midnight tainted booleans
 
 Adds a shared `BazCore:SafeBool(b)` helper alongside the existing

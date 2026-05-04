@@ -2,7 +2,7 @@
 ## Title: BazCore
 ## Notes: Shared framework for Baz addons
 ## Author: Baz4k
-## Version: 107
+## Version: 108
 ## X-License: GPL v2
 ## Category: Baz Suite
 ## X-Curse-Project-ID: 1503896

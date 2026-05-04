@@ -125,7 +125,15 @@ end
 
 local function CreatePopupFrame()
     local f = CreateFrame("Frame", "BazCorePopup", UIParent, "BackdropTemplate")
-    f:SetFrameStrata("DIALOG")
+    -- FULLSCREEN_DIALOG sits above DIALOG strata, so this confirm /
+    -- alert popup reliably renders on top of any DIALOG-level UI like
+    -- BazCore's Edit Mode settings panel or BazCore's standalone
+    -- Options window. At plain DIALOG strata both frames tied at the
+    -- same FrameLevel and render order was order-of-creation, which
+    -- meant the popup backdrop landed BEHIND the Edit Mode panel
+    -- while the popup's children (buttons, text) rendered in front -
+    -- a half-and-half visual that looks broken.
+    f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetFrameLevel(200)
     f:SetMovable(true)
     f:EnableMouse(true)
