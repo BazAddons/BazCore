@@ -1,5 +1,14 @@
 # BazCore Changelog
 
+## 111 — Image caption wrap measurement fix
+
+The line-count fallback added in 110 still didn't catch wrapped
+captions because `FontString:GetStringWidth()` on a width-constrained
+FontString returns the longest *wrapped* line, not the full string —
+so the math always reported one line. Now measured via a hidden,
+unconstrained sibling FontString instead. Bottom padding bumped to
+16 px while we're here.
+
 ## 110 — Image caption padding fix
 
 Wrapped image captions in `image` and `imageRow` blocks no longer

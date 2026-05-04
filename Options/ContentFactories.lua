@@ -253,16 +253,20 @@ local function CreateImageWidget(parent, opt, contentWidth)
         cap:SetWordWrap(true)
         cap:SetText(opt.caption)
         cap:SetTextColor(unpack(O.DIM))
-        -- Re-derive height from line metrics so a wrapped caption isn't
-        -- mis-reported as a single line: GetStringHeight on a wrapped
-        -- FontString can return single-line height until the next layout
-        -- pass, which leaves the next block crashing into our caption.
-        local strW = cap:GetStringWidth() or 0
+        -- Measure the UNWRAPPED string width via a separate hidden
+        -- FontString with no width constraint. cap:GetStringWidth() on a
+        -- wrapped FontString returns the longest *wrapped* line, not the
+        -- full string, so dividing by contentWidth always yields 1 line.
+        local measure = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        measure:Hide()
+        measure:SetText(opt.caption)
+        local unwrappedW = measure:GetStringWidth() or 0
+        measure:SetText("")
         local _, fontH = cap:GetFont()
         fontH = fontH or 12
-        local numLines = math.max(1, math.ceil(strW / contentWidth))
+        local numLines = math.max(1, math.ceil(unwrappedW / contentWidth))
         local capH = math.max(cap:GetStringHeight() or 0, numLines * fontH * 1.2)
-        totalH = totalH + capH + 12
+        totalH = totalH + capH + 16
     end
 
     frame:SetSize(contentWidth, totalH)
@@ -345,12 +349,19 @@ local function CreateImageRowWidget(parent, opt, contentWidth)
         cap:SetWordWrap(true)
         cap:SetText(opt.caption)
         cap:SetTextColor(unpack(O.DIM))
-        local strW = cap:GetStringWidth() or 0
+        -- Measure unwrapped string width via a hidden, unconstrained
+        -- FontString (cap:GetStringWidth() on a wrapped FontString
+        -- returns the longest wrapped line, not the full unwrapped text).
+        local measure = imageFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        measure:Hide()
+        measure:SetText(opt.caption)
+        local unwrappedW = measure:GetStringWidth() or 0
+        measure:SetText("")
         local _, fontH = cap:GetFont()
         fontH = fontH or 12
-        local numLines = math.max(1, math.ceil(strW / imageW))
+        local numLines = math.max(1, math.ceil(unwrappedW / imageW))
         local capH = math.max(cap:GetStringHeight() or 0, numLines * fontH * 1.2)
-        imageColH = imageH + capH + 12
+        imageColH = imageH + capH + 16
     end
     imageFrame:SetHeight(imageColH)
 
