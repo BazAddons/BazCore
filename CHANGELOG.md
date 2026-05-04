@@ -1,5 +1,14 @@
 # BazCore Changelog
 
+## 110 — Image caption padding fix
+
+Wrapped image captions in `image` and `imageRow` blocks no longer
+collide with the next content block. Caption height now uses the
+larger of the engine-reported height and a line-count estimate
+(string width ÷ frame width × line height), and the bottom padding
+under each captioned image was bumped from 6 px to 12 px so the
+following block always has a visible gap underneath.
+
 ## 109 — New `imageRow` content block
 
 Adds `imageRow` to the User Manual / options-page content block

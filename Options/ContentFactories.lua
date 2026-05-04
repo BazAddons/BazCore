@@ -250,10 +250,19 @@ local function CreateImageWidget(parent, opt, contentWidth)
         cap:SetPoint("TOP", tex, "BOTTOM", 0, -4)
         cap:SetWidth(contentWidth)
         cap:SetJustifyH("CENTER")
+        cap:SetWordWrap(true)
         cap:SetText(opt.caption)
         cap:SetTextColor(unpack(O.DIM))
-        cap:SetWordWrap(true)
-        totalH = totalH + cap:GetStringHeight() + 6
+        -- Re-derive height from line metrics so a wrapped caption isn't
+        -- mis-reported as a single line: GetStringHeight on a wrapped
+        -- FontString can return single-line height until the next layout
+        -- pass, which leaves the next block crashing into our caption.
+        local strW = cap:GetStringWidth() or 0
+        local _, fontH = cap:GetFont()
+        fontH = fontH or 12
+        local numLines = math.max(1, math.ceil(strW / contentWidth))
+        local capH = math.max(cap:GetStringHeight() or 0, numLines * fontH * 1.2)
+        totalH = totalH + capH + 12
     end
 
     frame:SetSize(contentWidth, totalH)
@@ -333,10 +342,15 @@ local function CreateImageRowWidget(parent, opt, contentWidth)
         cap:SetPoint("TOP", tex, "BOTTOM", 0, -4)
         cap:SetWidth(imageW)
         cap:SetJustifyH("CENTER")
+        cap:SetWordWrap(true)
         cap:SetText(opt.caption)
         cap:SetTextColor(unpack(O.DIM))
-        cap:SetWordWrap(true)
-        imageColH = imageH + cap:GetStringHeight() + 6
+        local strW = cap:GetStringWidth() or 0
+        local _, fontH = cap:GetFont()
+        fontH = fontH or 12
+        local numLines = math.max(1, math.ceil(strW / imageW))
+        local capH = math.max(cap:GetStringHeight() or 0, numLines * fontH * 1.2)
+        imageColH = imageH + capH + 12
     end
     imageFrame:SetHeight(imageColH)
 
