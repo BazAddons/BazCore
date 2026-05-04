@@ -296,8 +296,15 @@ end
 -- Options:
 --   texture | atlas | fileID  - image source (same precedence as
 --                               the image block: atlas > fileID > texture)
---   imageWidth, imageHeight   - fixed pixel size of the image column.
---                               imageHeight defaults to 16:9 of imageWidth.
+--   imageWidth, imageHeight   - size of the image column. A value
+--                               > 1 is treated as absolute pixels;
+--                               a value between 0 and 1 is treated
+--                               as a fraction of contentWidth (so
+--                               imageWidth = 0.5 gives a half-width
+--                               image column without the caller
+--                               having to know the panel's pixel
+--                               width). imageHeight defaults to 16:9
+--                               of the resolved imageWidth.
 --   imageSide                 - "left" (default) or "right"
 --   caption                   - optional caption rendered below the
 --                               image, sized to imageWidth
@@ -312,8 +319,13 @@ end
 local function CreateImageRowWidget(parent, opt, contentWidth)
     local frame = CreateFrame("Frame", nil, parent)
 
+    -- Resolve imageWidth: < 1 means "fraction of contentWidth", >= 1
+    -- means absolute pixels. Same rule for imageHeight (against the
+    -- resolved imageWidth-based 16:9 fallback if imageHeight is nil).
     local imageW = opt.imageWidth or 280
+    if imageW > 0 and imageW < 1 then imageW = math.floor(contentWidth * imageW) end
     local imageH = opt.imageHeight or math.floor(imageW * 9 / 16)
+    if imageH > 0 and imageH < 1 then imageH = math.floor(imageW * imageH) end
     local gap = O.PAD or 16
     local textW = contentWidth - imageW - gap
     if textW < 100 then

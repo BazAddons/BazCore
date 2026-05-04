@@ -1,5 +1,13 @@
 # BazCore Changelog
 
+## 113 — `imageRow` accepts fractional widths
+
+`imageWidth` and `imageHeight` on the `imageRow` block now accept a
+value between 0 and 1, interpreted as a fraction of the surrounding
+content width. So `imageWidth = 0.5` gives a half-width image column
+without the caller needing to know what pixel width the panel is
+currently showing. Values >= 1 still mean absolute pixels as before.
+
 ## 112 — `imageRow` aspect ratio + caption position fix
 
 The image inside an `imageRow` was using `SetAllPoints` on its
