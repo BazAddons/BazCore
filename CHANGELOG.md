@@ -1,5 +1,19 @@
 # BazCore Changelog
 
+## 107 — New BazCore:SafeBool helper for Midnight tainted booleans
+
+Adds a shared `BazCore:SafeBool(b)` helper alongside the existing
+`SafeString` and `SafeNumber`. Midnight extended secret-taint to
+booleans on some API surfaces (notably `LuaDurationObject:IsZero()`
+on cooldown duration objects when the spell data flows through
+tainted events) — boolean tests like `if x then` or `not x` throw
+`ADDON_ACTION_BLOCKED` on those values. SafeBool round-trips the
+value through `string.format("%s", b)` to strip the taint and
+returns a clean true/false.
+
+No user-visible change; this is for addon developers building on
+BazCore. Existing addons keep working as-is.
+
 ## 106 - CPU Monitor widget: explicit source + Start/Stop button
 - Widget now declares `source = "BazCore"` so BazWidgetDrawers' Widgets list groups it under BazCore (was falling through to "Other" since the `bazcore_` ID prefix wasn't in BWD's known-prefix list).
 - Added a Start/Stop button to the widget's title bar that toggles the `scriptProfile` CVar via the existing `EnableCPUProfiling` / `DisableCPUProfiling` helpers. Tooltip warns the click triggers `/reload`. The button label switches between "Start" (when profiling is off) and "Stop" (when on) and refreshes on every tick.

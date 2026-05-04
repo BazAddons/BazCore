@@ -765,6 +765,26 @@ they can be safely compared, concatenated, or set as secure-frame attributes.
       return tonumber(string.format("%d", secretNum))
   end)
   ```
+- Helper: `BazCore:SafeNumber(num)` — rounds-trips via `%d` first,
+  falls back to `%f`, returns a clean Lua number or nil
+
+### Secret booleans
+
+- Some Midnight APIs return tainted booleans — notably
+  `LuaDurationObject:IsZero()` on cooldown duration objects when the
+  underlying spell data carries secrets
+- Direct boolean tests (`if x then`, `not x`) on a tainted bool throw
+  `ADDON_ACTION_BLOCKED`; even pcall around the test isn't enough
+  because the throw happens inside the test, not at the assignment
+- Two paths:
+  1. **Prefer `:HasSecretValues()` as a gate** — that method is
+     documented `ReturnsNeverSecret = true`, so its bool is always
+     safe. When it returns false, the object's other booleans
+     (`:IsZero()`, etc.) are also safe to test.
+  2. **Use `BazCore:SafeBool(b)` to launder** when you have a value
+     of unknown taint and need to test it directly. Round-trips
+     through `string.format("%s", b)` and returns a clean true/false
+     by string comparison.
 
 ### Typical offenders
 

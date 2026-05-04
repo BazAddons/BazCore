@@ -205,3 +205,25 @@ function BazCore:SafeNumber(num)
     if not ok or not str then return nil end
     return tonumber(str)
 end
+
+---------------------------------------------------------------------------
+-- Safe Bool Utility
+-- Midnight (12.0) extends secret-taint to booleans returned from certain
+-- API surfaces - notably LuaDurationObject:IsZero() on cooldown duration
+-- objects when the underlying spell data flows through tainted events.
+-- Boolean tests (`if x then`, `not x`) on a tainted bool throw
+-- ADDON_ACTION_BLOCKED. Round-trip through "%s" string formatting to
+-- launder, then compare against the canonical "true" string.
+--
+-- Usage: prefer the duration object's :HasSecretValues() (documented
+-- ReturnsNeverSecret) where available - that's a free taint check
+-- without round-tripping. Use SafeBool when you have a value of
+-- unknown taint and need to test it.
+---------------------------------------------------------------------------
+
+function BazCore:SafeBool(b)
+    if b == nil then return nil end
+    local ok, str = pcall(string.format, "%s", b)
+    if not ok or not str then return nil end
+    return str == "true"
+end
