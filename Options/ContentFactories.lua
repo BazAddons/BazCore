@@ -331,7 +331,13 @@ local function CreateImageRowWidget(parent, opt, contentWidth)
     imageFrame:SetSize(imageW, imageH)
 
     local tex = imageFrame:CreateTexture(nil, "ARTWORK")
-    tex:SetAllPoints(imageFrame)
+    -- Fixed size + TOPLEFT anchor so the texture holds its aspect
+    -- ratio when imageFrame grows to fit the caption underneath.
+    -- (SetAllPoints would stretch the texture vertically with the
+    -- frame, squishing the image and dragging the caption anchor
+    -- below the row's bounds.)
+    tex:SetSize(imageW, imageH)
+    tex:SetPoint("TOPLEFT", imageFrame, "TOPLEFT", 0, 0)
     if opt.atlas then
         tex:SetAtlas(opt.atlas)
     elseif opt.fileID then

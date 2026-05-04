@@ -1,5 +1,15 @@
 # BazCore Changelog
 
+## 112 — `imageRow` aspect ratio + caption position fix
+
+The image inside an `imageRow` was using `SetAllPoints` on its
+container, so when the column grew to fit the caption the texture
+stretched vertically (squished the image) and dragged the caption
+anchor below the row's bounds — putting the caption on top of the
+next block. Texture is now pinned to a fixed `imageWidth × imageHeight`
+at the top of the column, leaving the caption to sit cleanly inside
+the row and the row's reported height to actually contain everything.
+
 ## 111 — Image caption wrap measurement fix
 
 The line-count fallback added in 110 still didn't catch wrapped
