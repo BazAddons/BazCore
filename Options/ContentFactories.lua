@@ -261,6 +261,115 @@ local function CreateImageWidget(parent, opt, contentWidth)
 end
 
 ---------------------------------------------------------------------------
+-- ImageRow block - image on one side, content blocks on the other
+--
+-- Reserves a fixed-width column for the image (with optional caption
+-- underneath, same shape as the standalone image block) and renders
+-- arbitrary content blocks alongside in the remaining width. Total
+-- row height is whichever column is taller.
+--
+-- Use when:
+--   * the image and a short paragraph / list / heading naturally
+--     belong together visually
+--   * you want to break up a wall of full-width screenshots with
+--     a tighter shoulder-to-shoulder layout
+--
+-- Don't use when:
+--   * the descriptive text is so long the image would feel orphaned
+--     at the top - a centered full-width image + caption + body
+--     reads better in that case
+--   * the image deserves a "wow factor" full-width showing
+--
+-- Options:
+--   texture | atlas | fileID  - image source (same precedence as
+--                               the image block: atlas > fileID > texture)
+--   imageWidth, imageHeight   - fixed pixel size of the image column.
+--                               imageHeight defaults to 16:9 of imageWidth.
+--   imageSide                 - "left" (default) or "right"
+--   caption                   - optional caption rendered below the
+--                               image, sized to imageWidth
+--   blocks                    - array of standard content blocks for
+--                               the text column; rendered via the
+--                               same RenderBlockList that drives
+--                               regular page rendering, so anything
+--                               nests freely (lists, notes, code,
+--                               other images, even another imageRow)
+---------------------------------------------------------------------------
+
+local function CreateImageRowWidget(parent, opt, contentWidth)
+    local frame = CreateFrame("Frame", nil, parent)
+
+    local imageW = opt.imageWidth or 280
+    local imageH = opt.imageHeight or math.floor(imageW * 9 / 16)
+    local gap = O.PAD or 16
+    local textW = contentWidth - imageW - gap
+    if textW < 100 then
+        -- Pathological case: content area too narrow to host both
+        -- columns at the requested image size. Shrink image to leave
+        -- the text at least 100 px so the renderer doesn't choke.
+        imageW = math.max(80, contentWidth - 100 - gap)
+        imageH = math.floor(imageW * (opt.imageHeight and (opt.imageHeight / (opt.imageWidth or imageW)) or (9 / 16)))
+        textW = contentWidth - imageW - gap
+    end
+    local imageSide = opt.imageSide or "left"
+
+    -- Image column container (image + optional caption stacked)
+    local imageFrame = CreateFrame("Frame", nil, frame)
+    imageFrame:SetSize(imageW, imageH)
+
+    local tex = imageFrame:CreateTexture(nil, "ARTWORK")
+    tex:SetAllPoints(imageFrame)
+    if opt.atlas then
+        tex:SetAtlas(opt.atlas)
+    elseif opt.fileID then
+        tex:SetTexture(opt.fileID)
+    elseif opt.texture then
+        tex:SetTexture(opt.texture)
+    end
+
+    local imageColH = imageH
+    if opt.caption and opt.caption ~= "" then
+        local cap = imageFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        cap:SetPoint("TOP", tex, "BOTTOM", 0, -4)
+        cap:SetWidth(imageW)
+        cap:SetJustifyH("CENTER")
+        cap:SetText(opt.caption)
+        cap:SetTextColor(unpack(O.DIM))
+        cap:SetWordWrap(true)
+        imageColH = imageH + cap:GetStringHeight() + 6
+    end
+    imageFrame:SetHeight(imageColH)
+
+    -- Text column - render arbitrary content blocks via RenderBlockList
+    local textFrame = CreateFrame("Frame", nil, frame)
+    textFrame:SetWidth(textW)
+
+    local textBottom = O.RenderBlockList(textFrame, opt.blocks, textW, 0) or 0
+    local textColH = -textBottom
+    if textColH < 0 then textColH = 0 end
+    -- RenderBlockList tacks an O.SPACING after the last block; trim
+    -- it so the row's bottom edge sits flush with the last block.
+    if textColH > (O.SPACING or 0) then
+        textColH = textColH - (O.SPACING or 0)
+    end
+    textFrame:SetHeight(textColH > 0 and textColH or 1)
+
+    -- Position columns
+    if imageSide == "right" then
+        textFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        imageFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", textW + gap, 0)
+    else
+        imageFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        textFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", imageW + gap, 0)
+    end
+
+    local totalH = math.max(imageColH, textColH)
+    if totalH < 1 then totalH = imageColH end
+    frame:SetSize(contentWidth, totalH)
+    return frame, totalH
+end
+
+---------------------------------------------------------------------------
 -- Note (callout) block
 ---------------------------------------------------------------------------
 
@@ -620,6 +729,7 @@ O.widgetFactories.caption     = CreateTextWidget("caption")
 O.widgetFactories.quote       = CreateTextWidget("quote")
 O.widgetFactories.list        = CreateListWidget
 O.widgetFactories.image       = CreateImageWidget
+O.widgetFactories.imageRow    = CreateImageRowWidget
 O.widgetFactories.note        = CreateNoteWidget
 O.widgetFactories.code        = CreateCodeWidget
 O.widgetFactories.divider     = CreateDividerWidget

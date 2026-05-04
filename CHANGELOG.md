@@ -1,5 +1,36 @@
 # BazCore Changelog
 
+## 109 — New `imageRow` content block
+
+Adds `imageRow` to the User Manual / options-page content block
+library. Places an image on one side of the row and arbitrary
+content blocks alongside it — useful for User Manual pages that
+want a "screenshot + short explanation" pairing without each shot
+hogging a full-width row.
+
+```lua
+{ type = "imageRow",
+  texture = "Interface\\AddOns\\YourAddon\\Media\\foo.png",
+  imageWidth = 280,        -- image column width; height defaults
+                           -- to 16:9 of imageWidth
+  imageSide = "left",      -- or "right"
+  caption = "...",         -- optional, rendered below the image
+  blocks = {
+      { type = "h3", text = "..." },
+      { type = "paragraph", text = "..." },
+      { type = "list", items = { ... } },
+  },
+}
+```
+
+Total row height is whichever column is taller. The text-column
+content goes through the same RenderBlockList that drives normal
+page content, so anything nests freely (lists, notes, code blocks,
+even another imageRow).
+
+No user-visible change in BazCore itself; this is for addon authors
+building User Manual pages on top of BazCore.
+
 ## 108 — Confirm popups now sit above Edit Mode panels
 
 When the Delete-bar confirm popup (or any other BazCore confirm /
