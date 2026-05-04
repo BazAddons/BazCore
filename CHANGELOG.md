@@ -1,5 +1,15 @@
 # BazCore Changelog
 
+## 114 — Scrollbar visibility tracks scroll-child size changes
+
+`O.AutoHideScrollbar` only watched the scroll frame's `OnSizeChanged`,
+which never fires when the *child* re-renders (User Manual pages,
+dynamic option pages). That left the scrollbar stuck on whichever
+state it was in when the panel was first opened — long pages would
+show no scrollbar if a short page had been visible first. The hook
+now re-attaches to every scroll child as it's assigned, so visibility
+recomputes whenever content height changes.
+
 ## 113 — `imageRow` accepts fractional widths
 
 `imageWidth` and `imageHeight` on the `imageRow` block now accept a

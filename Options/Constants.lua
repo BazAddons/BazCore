@@ -541,7 +541,11 @@ function O.HasChildGroups(args)
 end
 
 -- Auto-hide a scroll bar when the content fits without scrolling.
--- Hooks OnValueChanged on the scroll frame so visibility updates live.
+-- Tracks size changes on both the scroll frame *and* its scroll child:
+-- the child height changes whenever a page re-renders (User Guide
+-- navigation, dynamic option pages, etc.), and the frame's
+-- OnSizeChanged alone can't catch that — leaving the bar stuck on its
+-- previous show/hide state from when the panel was first laid out.
 function O.AutoHideScrollbar(scrollFrame, scrollBar)
     if not scrollFrame or not scrollBar then return end
 
@@ -561,7 +565,25 @@ function O.AutoHideScrollbar(scrollFrame, scrollBar)
     end
 
     scrollFrame:HookScript("OnSizeChanged", Update)
-    -- Poll briefly after creation so content has settled
-    C_Timer.After(0, Update)
-    C_Timer.After(0.1, Update)
+
+    -- The scroll child may not exist yet when we're called, and may also
+    -- be replaced later via SetScrollChild — so re-attach an
+    -- OnSizeChanged hook each time we see a new child.
+    local hookedChild = nil
+    local function HookChild()
+        local child = scrollFrame:GetScrollChild()
+        if child and child ~= hookedChild then
+            child:HookScript("OnSizeChanged", Update)
+            hookedChild = child
+            Update()
+        end
+    end
+    if scrollFrame.SetScrollChild then
+        hooksecurefunc(scrollFrame, "SetScrollChild", HookChild)
+    end
+
+    -- Poll briefly after creation so content has settled, and pick up
+    -- the initial scroll child if it's already been assigned.
+    C_Timer.After(0, function() HookChild() Update() end)
+    C_Timer.After(0.1, function() HookChild() Update() end)
 end
