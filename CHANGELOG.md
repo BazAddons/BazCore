@@ -1,5 +1,15 @@
 # BazCore Changelog
 
+## 117 — Context-menu sections support nested submenus
+
+`OpenContextMenu` now handles a third item shape alongside buttons
+and dividers: a `submenu` flyout. Pass `{ label = "X", submenu = {...
+items ...} }` and the parent button opens a child menu on hover when
+the user mouses over it. Submenus nest arbitrarily because the item
+renderer recurses, so an addon can group a long list under a single
+top-level entry (BazBags now puts its 8 categories under "Category"
+instead of taking up 8 rows on every shift+right-click).
+
 ## 116 — Shared context-menu sections
 
 Two new primitives that let any addon contribute entries to a context

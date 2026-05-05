@@ -263,6 +263,9 @@ end
 -- (return nil or an empty array). Each item is one of:
 --   { label, onClick, disabled = bool? }   - regular button
 --   { divider = true }                     - separator within a section
+--   { label, submenu = { items } }         - flyout submenu (no onClick;
+--                                            hover the parent to open).
+--                                            Submenus nest arbitrarily.
 ---------------------------------------------------------------------------
 
 BazCore._ctxSections = BazCore._ctxSections or {}
@@ -308,6 +311,35 @@ function BazCore:OpenContextMenu(scope, anchor, context, options)
     end
     if #resolved == 0 then return end
 
+    -- Recursive item renderer. Handles plain buttons, dividers, and
+    -- submenus (a button whose `submenu` field is an array of child
+    -- items). Submenus nest arbitrarily because RenderItem calls
+    -- itself on each child.
+    local function RenderItem(parent, item)
+        if item.divider then
+            parent:CreateDivider()
+            return
+        end
+        if type(item.submenu) == "table" then
+            local sub = parent:CreateButton(item.label or "?")
+            for _, child in ipairs(item.submenu) do
+                RenderItem(sub, child)
+            end
+            if item.disabled and sub and sub.SetDisabled then
+                sub:SetDisabled(true)
+            end
+            return
+        end
+        local btn = parent:CreateButton(item.label or "?", function()
+            if type(item.onClick) == "function" then
+                item.onClick()
+            end
+        end)
+        if item.disabled and btn and btn.SetDisabled then
+            btn:SetDisabled(true)
+        end
+    end
+
     MenuUtil.CreateContextMenu(anchor, function(_, root)
         if options.title then
             root:CreateTitle(options.title)
@@ -316,18 +348,7 @@ function BazCore:OpenContextMenu(scope, anchor, context, options)
             if options.title or i > 1 then root:CreateDivider() end
             root:CreateTitle(section.addonName)
             for _, item in ipairs(section.items) do
-                if item.divider then
-                    root:CreateDivider()
-                else
-                    local btn = root:CreateButton(item.label or "?", function()
-                        if type(item.onClick) == "function" then
-                            item.onClick()
-                        end
-                    end)
-                    if item.disabled and btn and btn.SetDisabled then
-                        btn:SetDisabled(true)
-                    end
-                end
+                RenderItem(root, item)
             end
         end
     end)
