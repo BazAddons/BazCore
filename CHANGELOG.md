@@ -1,5 +1,19 @@
 # BazCore Changelog
 
+## 115 — `BazCore:GetAddonFromStack` for caller attribution
+
+New helper that walks the Lua stack and returns the name of the addon
+whose code is currently executing — useful for any addon that hooks a
+shared method (a tooltip API, an event dispatcher, etc.) and wants to
+attribute the call back to the third-party addon that triggered it.
+Skips frames in a configurable set of "noise" addons so `Foo > BazCore
+> target` resolves to `Foo` rather than your own hook plumbing.
+
+```lua
+local skip = { BazCore = true, BazTooltipEditor = true }
+local culprit = BazCore:GetAddonFromStack(3, skip) or "Blizzard"
+```
+
 ## 114 — Scrollbar visibility tracks scroll-child size changes
 
 `O.AutoHideScrollbar` only watched the scroll frame's `OnSizeChanged`,
