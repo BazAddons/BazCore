@@ -1,5 +1,31 @@
 # BazCore Changelog
 
+## 116 — Shared context-menu sections
+
+Two new primitives that let any addon contribute entries to a context
+menu owned by a different addon. Each addon keeps owning its own
+trigger (BazBags catches shift+right-click on bag slots, BazBars on
+bar slots, etc.); BazCore just provides the registry + assembly so
+extensions can show up automatically.
+
+```lua
+-- Contribute a section. getItems is called at menu-open time with
+-- whatever context the owning addon passes — return nil to skip the
+-- section, or an array of {label, onClick, disabled?} / {divider=true}.
+BazCore:RegisterContextMenuSection("bag-item", "MyAddon", function(ctx)
+    if not ctx.itemID then return end
+    return { { label = "Do thing", onClick = function() ... end } }
+end)
+
+-- Build + show the menu. Owning addon calls this from its trigger.
+BazCore:OpenContextMenu("bag-item", anchor, ctx, {
+    title = ctx.itemLink,  -- optional top-level title above sections
+})
+```
+
+Scopes are strings; current vocabulary is `"bag-item"` (BazBags). More
+will land as other addons migrate (BazBars `bar-slot` is a candidate).
+
 ## 115 — `BazCore:GetAddonFromStack` for caller attribution
 
 New helper that walks the Lua stack and returns the name of the addon

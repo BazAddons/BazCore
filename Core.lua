@@ -244,6 +244,96 @@ function BazCore:GetAddonFromStack(level, skipAddons)
 end
 
 ---------------------------------------------------------------------------
+-- Context Menu Sections
+---------------------------------------------------------------------------
+--
+-- Lets any addon contribute entries to a context menu owned by another
+-- addon. The owning addon keeps owning the trigger and the anchor (e.g.
+-- BazBags catches shift+right-click on its bag slots) and asks BazCore
+-- to build the menu via OpenContextMenu(scope, anchor, context). BazCore
+-- fans out to every section registered against that scope, calls each
+-- section's getItems(context) at menu-open time, and assembles a single
+-- MenuUtil context menu with one section per addon.
+--
+-- Scopes are strings that name the click context. Current vocabulary:
+--   "bag-item"  - shift+right-click on a bag slot (owned by BazBags)
+--
+-- Sections return a list of items at menu-open time so they can inspect
+-- the context and skip rendering when they have nothing to offer
+-- (return nil or an empty array). Each item is one of:
+--   { label, onClick, disabled = bool? }   - regular button
+--   { divider = true }                     - separator within a section
+---------------------------------------------------------------------------
+
+BazCore._ctxSections = BazCore._ctxSections or {}
+
+function BazCore:RegisterContextMenuSection(scope, addonName, getItems)
+    if type(scope)     ~= "string"   or scope     == "" then return end
+    if type(addonName) ~= "string"   or addonName == "" then return end
+    if type(getItems)  ~= "function" then return end
+
+    local list = self._ctxSections[scope]
+    if not list then
+        list = {}
+        self._ctxSections[scope] = list
+    end
+    list[#list + 1] = { addonName = addonName, getItems = getItems }
+end
+
+-- Open the registered context menu for `scope`, anchored to `anchor`,
+-- with the click `context` passed to each section's getItems.
+--
+-- options.title (optional) - string rendered as a top-level menu title
+--                            above all sections. BazBags uses this for
+--                            the item link of the clicked slot, so the
+--                            menu identifies its target up top.
+function BazCore:OpenContextMenu(scope, anchor, context, options)
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    options = options or {}
+
+    local sections = self._ctxSections[scope]
+    if not sections or #sections == 0 then return end
+
+    -- Pre-resolve so empty sections don't leave orphaned dividers
+    -- between sections that DID return items.
+    local resolved = {}
+    for _, section in ipairs(sections) do
+        local ok, items = pcall(section.getItems, context)
+        if ok and type(items) == "table" and #items > 0 then
+            resolved[#resolved + 1] = {
+                addonName = section.addonName,
+                items     = items,
+            }
+        end
+    end
+    if #resolved == 0 then return end
+
+    MenuUtil.CreateContextMenu(anchor, function(_, root)
+        if options.title then
+            root:CreateTitle(options.title)
+        end
+        for i, section in ipairs(resolved) do
+            if options.title or i > 1 then root:CreateDivider() end
+            root:CreateTitle(section.addonName)
+            for _, item in ipairs(section.items) do
+                if item.divider then
+                    root:CreateDivider()
+                else
+                    local btn = root:CreateButton(item.label or "?", function()
+                        if type(item.onClick) == "function" then
+                            item.onClick()
+                        end
+                    end)
+                    if item.disabled and btn and btn.SetDisabled then
+                        btn:SetDisabled(true)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+---------------------------------------------------------------------------
 -- BazCore's own settings page (registered after all modules load)
 ---------------------------------------------------------------------------
 
