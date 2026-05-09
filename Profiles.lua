@@ -506,11 +506,13 @@ end
 
 function BazCore:GetProfileOptionsTable()
     local function RefreshProfilesPanel()
-        local profileEntry = BazCore._optionsTables and BazCore._optionsTables["BazCore-Profiles"]
-        if profileEntry and profileEntry.canvas and BazCore._RenderIntoCanvas then
-            local tbl = profileEntry.func
-            if type(tbl) == "function" then tbl = tbl() end
-            if tbl then BazCore._RenderIntoCanvas(profileEntry.canvas, tbl) end
+        -- Re-render the standalone Options window's Profiles
+        -- subcategory if it's currently visible. Uses BazCore's
+        -- public RefreshOptions API rather than poking at the
+        -- internal optionsTables.canvas field (that field was never
+        -- populated, so the old direct-poke path silently no-op'd).
+        if BazCore.RefreshOptions then
+            BazCore:RefreshOptions("BazCore-Profiles")
         end
     end
 
