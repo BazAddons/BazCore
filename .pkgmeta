@@ -1,5 +1,9 @@
 package-as: BazCore
 
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
 externals:
   Libs/LibStub:
     url: https://repos.wowace.com/wow/libstub/trunk
@@ -13,3 +17,4 @@ ignore:
   - .gitignore
   - .pkgmeta
   - LICENSE
+  - CHANGELOG.md
