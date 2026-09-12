@@ -430,7 +430,7 @@ boot:SetScript("OnEvent", function(self, event, ...)
             end)
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
-        local isInitial, isReload = ...
+        local _, isReload = ...
         if not enteredWorldOnce then
             enteredWorldOnce = true
             PushEvent(isReload and "reload" or "login")

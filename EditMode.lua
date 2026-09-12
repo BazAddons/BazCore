@@ -507,7 +507,7 @@ local function CreateNudgeWidget(parent)
     local b1 = MakeNudgeBtn(label, math.pi / 2, -1, 0)    -- Left
     local b2 = MakeNudgeBtn(b1, -math.pi / 2, 1, 0)       -- Right
     local b3 = MakeNudgeBtn(b2, 0, 0, 1)                    -- Up
-    local b4 = MakeNudgeBtn(b3, math.pi, 0, -1)             -- Down
+    MakeNudgeBtn(b3, math.pi, 0, -1)                        -- Down
 
     row.SetValue = function() end
     row.GetValue = function() return nil end
@@ -912,7 +912,6 @@ local function PopulatePopup(frame, config)
     local frameLeft = frame:GetLeft() * fes / uiScale
     local frameTop = frame:GetTop() * fes / uiScale
     local popupW = popup:GetWidth()
-    local popupH = popup:GetHeight()
 
     local x, y
     if frameRight + popupW + 10 > screenW then

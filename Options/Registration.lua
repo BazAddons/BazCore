@@ -27,7 +27,6 @@ local WINDOW_HEIGHT  = 883
 local TAB_HEIGHT     = 32
 local SIDEBAR_WIDTH  = 200
 local SIDEBAR_ROW_H  = 28
-local HEADER_HEIGHT  = 52
 
 ---------------------------------------------------------------------------
 -- Layout helpers

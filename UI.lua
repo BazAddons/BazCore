@@ -606,7 +606,7 @@ function BazCore:CreateItemButton(parent, opts)
         local border = self.IconBorder
         if not border then return end
         if quality and quality > 1 then
-            local r, g, b = GetItemQualityColor(quality)
+            local r, g, b = C_Item.GetItemQualityColor(quality)
             border:SetVertexColor(r, g, b)
             border:Show()
         else

@@ -114,7 +114,6 @@ end
 ---------------------------------------------------------------------------
 
 local DEFAULT_MARKERS = { "*", "-", ">" }
-local NESTED_MARKERS  = { "*", "-", ">" }  -- per depth (alt cycle)
 
 local function GetOrderedLabel(index, depth)
     -- depth 0: 1. 2. 3.    depth 1: a. b. c.    depth 2: i. ii. iii.

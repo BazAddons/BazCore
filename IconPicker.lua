@@ -50,16 +50,13 @@ local function BuildSpellIconCache()
     local co = coroutine.create(function()
         local id = 0
         local misses = 0
-        local getSpell = C_Spell and C_Spell.GetSpellInfo or GetSpellInfo
         while misses < 80000 do
             id = id + 1
-            local info = getSpell and getSpell(id)
+            local info = C_Spell.GetSpellInfo(id)
             local name, icon
-            if type(info) == "table" then
+            if info then
                 name = info.name
                 icon = info.iconID
-            elseif GetSpellInfo then
-                name, _, icon = GetSpellInfo(id)
             end
 
             if icon == 136243 then

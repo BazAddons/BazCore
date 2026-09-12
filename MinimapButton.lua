@@ -133,10 +133,8 @@ local function CreateButton()
     -- Dragging around minimap edge
     btn:SetMovable(true)
     btn:RegisterForDrag("LeftButton")
-    local isDragging = false
 
     btn:SetScript("OnDragStart", function(self)
-        isDragging = true
         self:SetScript("OnUpdate", function()
             local mx, my = Minimap:GetCenter()
             local cx, cy = GetCursorPosition()
@@ -151,7 +149,6 @@ local function CreateButton()
     end)
 
     btn:SetScript("OnDragStop", function(self)
-        isDragging = false
         self:SetScript("OnUpdate", nil)
     end)
 

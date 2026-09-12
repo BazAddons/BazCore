@@ -4,7 +4,6 @@
 -- Standardized page generators: Landing, Modules, GlobalOptions, ManagedList
 ---------------------------------------------------------------------------
 
-local O = BazCore._Options
 
 ---------------------------------------------------------------------------
 -- CreateLandingPage
@@ -45,7 +44,6 @@ function BazCore:CreateLandingPage(addonName, content)
             name = featText,
             fontSize = "small",
         }
-        order = order + 1
     end
 
     if content.guide then

@@ -27,9 +27,9 @@ end
 
 local function GetSpecKey()
     local class = GetClassKey()
-    local specIndex = GetSpecialization()
+    local specIndex = C_SpecializationInfo.GetSpecialization()
     if not specIndex then return nil end
-    local _, specName = GetSpecializationInfo(specIndex)
+    local _, specName = C_SpecializationInfo.GetSpecializationInfo(specIndex)
     return specName and (class .. ":" .. specName) or nil
 end
 

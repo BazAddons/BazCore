@@ -146,9 +146,6 @@ function O.BuildListDetailPanel(container, groupOpt, contentWidth, yOffset, exec
     selectionState.collapsedSources = selectionState.collapsedSources or {}
     local collapsedSources = selectionState.collapsedSources
 
-    local listButtons = {}     -- list of clickable child rows (filtered by collapse state)
-    local rowsByChild = {}     -- [child] = button, for highlight updates
-
     local function GetChildByKey(key)
         if not key then return nil end
         for _, c in ipairs(childGroups) do

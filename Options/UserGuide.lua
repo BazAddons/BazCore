@@ -35,7 +35,6 @@ local O = BazCore._Options
 local guides = {}      -- [addonName] = guide table
 local guideState = {}  -- [addonName] = { expanded = {[key]=true}, selectedKey = "1" }
 
-local TREE_ROW_H = 26
 -- List width / gap constants live in Options/Constants.lua so the
 -- standard list/detail panel and the User Manual tree resolve to
 -- identical dimensions.

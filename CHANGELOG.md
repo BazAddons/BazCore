@@ -1,13 +1,15 @@
 # BazCore Changelog
 
-## 118 — Profiles list refreshes after Create / Delete / Reset
+## 119 — Timer leak fix and Midnight API updates
 
-Creating, deleting, resetting, or copying a profile from the
-Profiles tab now refreshes the visible list immediately. Previously
-you had to close and reopen the Options window to see the change.
+**Fixed a slow memory leak.** One-shot timers created by Baz addons were
+never removed from BazCore's tracking list after they fired, so the list
+grew for as long as you stayed logged in.
 
-The internal `RefreshProfilesPanel` helper was poking at an
-`optionsTables[name].canvas` field that was never assigned, so it
-silently no-op'd. Replaced with a call to the public
-`BazCore:RefreshOptions("BazCore-Profiles")` API, which is the
-canonical re-render path.
+**Midnight API updates.** Talent specialization lookups (used by
+spec-based profiles) and item quality colours now use the current
+`C_` APIs, so they keep working when Blizzard removes the old
+compatibility functions. The icon picker's spell search dropped its
+pre-Midnight fallback.
+
+**Marked compatible with patch 12.1.0.** The addon no longer shows as out of date in the AddOns list.

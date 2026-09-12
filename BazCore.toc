@@ -1,8 +1,8 @@
-## Interface: 120005
+## Interface: 120100
 ## Title: BazCore
 ## Notes: Shared framework for Baz addons
 ## Author: Baz4k
-## Version: 118
+## Version: 119
 ## X-License: GPL v2
 ## Category: Baz Suite
 ## X-Curse-Project-ID: 1503896

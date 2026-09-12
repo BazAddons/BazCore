@@ -20,7 +20,10 @@ function AddonMixin:After(delay, fn)
         addonTimers[self.name] = timers
     end
 
-    local timer = C_Timer.NewTimer(delay, function()
+    -- Declared first so the callback captures the local rather than a
+    -- nil global (a local's scope starts after its own statement).
+    local timer
+    timer = C_Timer.NewTimer(delay, function()
         -- Remove from tracking
         for i, t in ipairs(timers) do
             if t == timer then
