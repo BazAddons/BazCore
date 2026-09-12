@@ -33,10 +33,12 @@
 --   popup:Show() / popup:Hide()        -- normal frame methods. The popup
 --                                         parents secure cells, so WoW
 --                                         treats it as protected: only
---                                         call these out of combat. The
---                                         built-in dismiss paths (click
---                                         outside, hide-on-cast) defer to
+--                                         call these out of combat.
+--   popup:SafeHide()                   -- Hide() that defers to
 --                                         PLAYER_REGEN_ENABLED in combat.
+--                                         Hide-on-cast runs in the secure
+--                                         environment and works mid-combat;
+--                                         click-outside uses SafeHide.
 --
 -- opts shape:
 --   {
@@ -99,6 +101,11 @@ local function SafeHide(popup)
     end
     popup:Hide()
 end
+
+-- Forward-declared: defined with the secure toggle code below, but the
+-- cells need the proxy as their wrap-script header at creation time.
+local GetOrCreateProxy
+
 -- Popups stay open until the user explicitly dismisses them: clicking a
 -- cell (hideOnCast), right-clicking the trigger again (toggle), or
 -- clicking somewhere outside both the popup and trigger. Hover-leaving
@@ -144,6 +151,24 @@ local function CreateCell(popup, index)
     btn:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
     btn:RegisterForDrag("LeftButton")
 
+    -- Hide-on-cast runs in the secure environment so it works in combat:
+    -- the popup is protected (it parents these secure cells), so an
+    -- insecure Hide() after a mid-combat cast would be blocked. The
+    -- pre-body returns a message only so the post-body runs; the post-
+    -- body hides on the up-click unless this click is a drop (PreClick
+    -- marks those, out of combat only) or hideOnCast is off. The header
+    -- is the popup's secure toggle proxy, which carries the popup ref.
+    SecureHandlerWrapScript(btn, "OnClick", GetOrCreateProxy(popup), [[
+        return nil, "click"
+    ]], [[
+        if down then return end
+        if self:GetAttribute("bazDropPending") then return end
+        local popup = owner:GetFrameRef("bazPopup")
+        if popup and popup:IsShown() and popup:GetAttribute("bazHideOnCast") then
+            popup:Hide()
+        end
+    ]])
+
     btn.icon = btn:CreateTexture(nil, "BACKGROUND")
     btn.icon:SetAllPoints()
     btn.icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
@@ -186,6 +211,8 @@ local function CreateCell(popup, index)
         if GetCursorInfo() then
             self._stashedType = self:GetAttribute("type") or false
             self:SetAttribute("type", nil)
+            -- Tell the secure hide-on-cast wrap this click is a drop.
+            self:SetAttribute("bazDropPending", true)
         end
     end)
 
@@ -207,6 +234,9 @@ local function CreateCell(popup, index)
         -- replaced; the next applyCell will set the right attributes.
         if self._stashedType ~= nil then
             self._stashedType = nil
+            if not InCombatLockdown() then
+                self:SetAttribute("bazDropPending", nil)
+            end
             if GetCursorInfo() and opts.onCellDrag then
                 opts.onCellDrag(self._cellIndex, self._popup)
             end
@@ -216,7 +246,9 @@ local function CreateCell(popup, index)
         if opts.onCellClick then
             opts.onCellClick(self._cellIndex, self._cellData, mouseButton, self._popup)
         end
-        if opts.hideOnCast ~= false then
+        -- The secure OnClick wrap has normally hidden the popup by now;
+        -- this is the fallback for anything that slipped past it.
+        if opts.hideOnCast ~= false and self._popup:IsShown() then
             SafeHide(self._popup)
         end
     end)
@@ -402,7 +434,7 @@ local TOGGLE_SNIPPET = [[
 -- doesn't conflict with the trigger's existing OnClick dispatch.
 local proxySerial = 0
 
-local function GetOrCreateProxy(popup)
+GetOrCreateProxy = function(popup)
     if popup._toggleProxy then return popup._toggleProxy end
     proxySerial = proxySerial + 1
     local proxy = CreateFrame("Button",
@@ -458,6 +490,8 @@ function BazCore:CreateSecureActionPopup(opts)
 
     function popup:Configure(newOpts)
         self._opts = newOpts
+        -- Read by the cells' secure hide-on-cast wrap.
+        self:SetAttribute("bazHideOnCast", newOpts.hideOnCast ~= false)
         ApplyChrome(self)
         ApplyAnchor(self)
         LayoutCells(self)
@@ -474,6 +508,12 @@ function BazCore:CreateSecureActionPopup(opts)
     -- dialog is up.
     function popup:SetSticky(on)
         self._sticky = on and true or false
+    end
+
+    -- Hide() that insecure code may call in combat: defers to
+    -- PLAYER_REGEN_ENABLED instead of tripping ADDON_ACTION_BLOCKED.
+    function popup:SafeHide()
+        SafeHide(self)
     end
 
     popup:SetScript("OnEvent", function(self, event)

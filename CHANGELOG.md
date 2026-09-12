@@ -1,10 +1,12 @@
 # BazCore Changelog
 
-## 120 — No more combat errors from flyout popups
+## 121 — Flyouts close instantly after casting, even in combat
 
-**Fixed ADDON_ACTION_BLOCKED when a flyout closes in combat.** Clicking
-away from an open BazBars flyout, or casting from one of its cells, while
-in combat tripped Blizzard's protected-frame guard and produced an error.
-Those dismissals now wait until you leave combat, and the flyout closes on
-its own at that point. Right-clicking the flyout's button still closes it
-instantly mid-combat, as before.
+**Casting from a flyout now closes it right away in combat.** Version 120
+stopped the combat error but left the flyout open until you dropped
+combat. The close now happens inside Blizzard's secure environment, so
+it is immediate whether or not you're fighting.
+
+Clicking away from an open flyout during combat still waits for combat
+to end. Blizzard offers no protected way to detect that click, so that
+part is unchanged.
