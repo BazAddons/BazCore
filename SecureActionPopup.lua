@@ -30,8 +30,13 @@
 -- Public API:
 --   BazCore:CreateSecureActionPopup(opts) -> popup frame
 --   popup:Configure(opts)              -- updates direction/grid/cells
---   popup:Show() / popup:Hide()        -- normal frame methods, but
---                                         no-ops in combat for safety
+--   popup:Show() / popup:Hide()        -- normal frame methods. The popup
+--                                         parents secure cells, so WoW
+--                                         treats it as protected: only
+--                                         call these out of combat. The
+--                                         built-in dismiss paths (click
+--                                         outside, hide-on-cast) defer to
+--                                         PLAYER_REGEN_ENABLED in combat.
 --
 -- opts shape:
 --   {
@@ -80,6 +85,20 @@ BazCore = BazCore or {}
 local DEFAULT_CELL_SIZE    = 36
 local DEFAULT_CELL_SPACING = 4
 local DEFAULT_PADDING      = 6
+
+-- Hide from insecure code. The popup is the parent of SecureActionButton
+-- cells, which makes it a protected frame: Hide() from addon code in
+-- combat raises ADDON_ACTION_BLOCKED. Defer until combat ends instead.
+-- The secure right-click toggle is unaffected and still closes the
+-- popup instantly mid-combat (hardware click -> secure snippet).
+local function SafeHide(popup)
+    if InCombatLockdown() then
+        popup._hidePending = true
+        popup:RegisterEvent("PLAYER_REGEN_ENABLED")
+        return
+    end
+    popup:Hide()
+end
 -- Popups stay open until the user explicitly dismisses them: clicking a
 -- cell (hideOnCast), right-clicking the trigger again (toggle), or
 -- clicking somewhere outside both the popup and trigger. Hover-leaving
@@ -198,7 +217,7 @@ local function CreateCell(popup, index)
             opts.onCellClick(self._cellIndex, self._cellData, mouseButton, self._popup)
         end
         if opts.hideOnCast ~= false then
-            self._popup:Hide()
+            SafeHide(self._popup)
         end
     end)
     btn:SetScript("OnReceiveDrag", function(self)
@@ -348,7 +367,7 @@ local function HandleGlobalMouseUp(popup)
     if MouseIsOver(popup) then return end
     if MouseIsOver(popup._opts.parent) then return end
     if GetCursorInfo and GetCursorInfo() then return end -- mid-drag
-    popup:Hide()
+    SafeHide(popup)
 end
 
 ---------------------------------------------------------------------------
@@ -460,12 +479,19 @@ function BazCore:CreateSecureActionPopup(opts)
     popup:SetScript("OnEvent", function(self, event)
         if event == "GLOBAL_MOUSE_UP" then
             HandleGlobalMouseUp(self)
+        elseif event == "PLAYER_REGEN_ENABLED" then
+            self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+            if self._hidePending then
+                self._hidePending = nil
+                self:Hide()
+            end
         end
     end)
     popup:HookScript("OnShow", function(self)
         self:RegisterEvent("GLOBAL_MOUSE_UP")
     end)
     popup:HookScript("OnHide", function(self)
+        self._hidePending = nil
         self:UnregisterEvent("GLOBAL_MOUSE_UP")
     end)
 
